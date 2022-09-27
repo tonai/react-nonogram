@@ -1,0 +1,43 @@
+.Board {
+  border-spacing: 0;
+}
+
+.Board__tile {
+  height: 20px;
+  padding: 0;
+  width: 20px;
+}
+
+.Board__button {
+  display: block;
+  height: 20px;
+  width: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.Board__cell {
+  height: 20px;
+  width: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.Board__cell--error {
+  color: red;
+}
+
+.Board__cols {
+  padding: 5px 0;
+  font-weight: normal;
+}
+
+.Board__rows {
+  padding: 0 5px;
+  font-weight: normal;
+}
+
+.Board__clue--complete {
+  font-weight: bold;
+}

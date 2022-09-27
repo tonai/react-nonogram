@@ -1,7 +1,33 @@
+import { useState } from 'react'
+
+import GamePage from '../GamePage/GamePage'
 import StartPage from '../StartPage/StartPage'
 
 function App(): JSX.Element {
-  return <StartPage />
+  const [image, setImage] = useState<string>()
+  const [imageData, setImageData] = useState<ImageData>()
+  const [start, setStart] = useState(false)
+
+  function handleStart(): void {
+    setStart(true)
+  }
+
+  return (
+    <>
+      {!start && (
+        <StartPage
+          image={image}
+          imageData={imageData}
+          onImageChange={setImage}
+          onImageLoad={setImageData}
+          onStart={handleStart}
+        />
+      )}
+      {Boolean(start) && Boolean(imageData) && (
+        <GamePage imageData={imageData as ImageData} />
+      )}
+    </>
+  )
 }
 
 export default App
