@@ -1,31 +1,118 @@
 /* eslint-disable react/no-array-index-key */
-import { MouseEvent } from 'react'
+import {
+  MouseEvent,
+  PointerEvent as ReactPointerEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import classnames from 'classnames'
 
-import { IGame, IGameState, TileState } from '../../types'
+import {
+  IFirstTileData,
+  IGame,
+  IGameState,
+  IPosition,
+  ITile,
+  TileState,
+} from '../../types'
+import { getSelectedTile } from '../../services'
 
 import './Board.css'
+
+// const height = 20
+// const width = 20
 
 interface IProps {
   gameData: IGame
   gameState: IGameState
-  onMark?: (x: number, y: number) => void
-  onReveal?: (x: number, y: number) => void
+  onSelect?: (tiles: ITile[], state: TileState) => void
 }
 
 function Board(props: IProps): JSX.Element {
-  const { gameData, gameState, onMark, onReveal } = props
-  const { board, cols, rows } = gameData
+  const { gameData, gameState, onSelect } = props
+  const { board, cols, flatBoard, rows } = gameData
   const { boardState, colsState, rowsState } = gameState
 
-  function handleClick(x: number, y: number) {
-    return (): void => onReveal?.(x, y)
+  const tableRef = useRef<HTMLTableSectionElement>(null)
+  const firstTileDataRef = useRef<IFirstTileData>()
+  const pointerStartRef = useRef<IPosition>()
+  const [startTile, setStartTile] = useState<ITile>()
+  const [selectedTiles, setSelectedTiles] = useState<number[]>([])
+
+  useEffect(() => {
+    const firstTile = tableRef.current?.querySelector('td')
+    if (firstTile) {
+      const { height, left, top, width } = firstTile.getBoundingClientRect()
+      firstTileDataRef.current = { height, left, top, width }
+    }
+  }, [])
+
+  useEffect(() => {
+    function handlePointerMove(event: PointerEvent): void {
+      const position = { x: event.clientX, y: event.clientY }
+      const selectedTileIds = getSelectedTile(
+        pointerStartRef.current as IPosition,
+        position,
+        firstTileDataRef.current as IFirstTileData,
+        board
+      )
+      setSelectedTiles((prevState) => {
+        if (JSON.stringify(prevState) !== JSON.stringify(selectedTileIds)) {
+          return selectedTileIds
+        }
+        return prevState
+      })
+    }
+
+    function handlePointerUp(event: PointerEvent): void {
+      const position = { x: event.clientX, y: event.clientY }
+      const selectedTileIds = getSelectedTile(
+        pointerStartRef.current as IPosition,
+        position,
+        firstTileDataRef.current as IFirstTileData,
+        board
+      )
+      const selectedTiles = flatBoard.filter((tile) =>
+        selectedTileIds.includes(tile.id)
+      )
+      onSelect?.(
+        selectedTiles,
+        event.button === 2 ? TileState.MARKED : TileState.REVEALED
+      )
+      setSelectedTiles([])
+      setStartTile(undefined)
+    }
+
+    if (startTile && typeof window !== 'undefined') {
+      window.addEventListener('pointermove', handlePointerMove)
+      window.addEventListener('pointerup', handlePointerUp)
+      return () => {
+        window.removeEventListener('pointermove', handlePointerMove)
+        window.removeEventListener('pointerup', handlePointerUp)
+      }
+    }
+  }, [board, flatBoard, onSelect, startTile])
+
+  // function handleClick(x: number, y: number) {
+  //   return (): void => onSelect?.([{ x, y }], TileState.REVEALED)
+  // }
+
+  function handleContextMenu(event: MouseEvent): void {
+    event.preventDefault()
   }
 
-  function handleContextMenu(x: number, y: number) {
-    return (event: MouseEvent): void => {
+  function handlePointerDown(id: number) {
+    return (event: ReactPointerEvent): void => {
       event.preventDefault()
-      onMark?.(x, y)
+      const tile = flatBoard.find((tile) => tile.id === id)
+      if (tile) {
+        setStartTile(tile)
+        setSelectedTiles([tile.id])
+        const position = { x: event.clientX, y: event.clientY }
+        pointerStartRef.current = position
+      }
     }
   }
 
@@ -50,14 +137,14 @@ function Board(props: IProps): JSX.Element {
           ))}
         </tr>
       </thead>
-      <tbody>
+      <tbody onContextMenu={handleContextMenu} ref={tableRef}>
         {rows.map((row, y) => (
           <tr key={y}>
             <th className="Board__rows">
               {row.map((value, x) => (
                 <span
                   className={classnames({
-                    'Board__clue--complete': rowsState[x][y],
+                    'Board__clue--complete': rowsState[y][x],
                   })}
                   key={x}
                 >
@@ -66,25 +153,23 @@ function Board(props: IProps): JSX.Element {
               ))}
             </th>
             {board.map((col, x) => (
-              <td className="Board__tile" key={x}>
-                {boardState[x][y] === TileState.HIDDEN && (
-                  <button
-                    className="Board__button"
-                    onClick={handleClick(x, y)}
-                    onContextMenu={handleContextMenu(x, y)}
-                    type="button"
-                  />
-                )}
+              <td
+                className={classnames('Board__tile', {
+                  'Board__tile--active': selectedTiles.includes(col[y].id),
+                })}
+                key={x}
+                onPointerDown={handlePointerDown(col[y].id)}
+              >
                 {boardState[x][y] === TileState.REVEALED &&
-                  Boolean(board[x][y]) && (
+                  Boolean(col[y].color) && (
                     <div
                       className="Board__cell"
                       style={{
-                        backgroundColor: `rgba(${String(board[x][y])})`,
+                        backgroundColor: `rgba(${String(col[y].color)})`,
                       }}
                     />
                   )}
-                {boardState[x][y] === TileState.REVEALED && !board[x][y] && (
+                {boardState[x][y] === TileState.REVEALED && !col[y].color && (
                   <div className="Board__cell Board__cell--error">X</div>
                 )}
                 {boardState[x][y] === TileState.MARKED && (

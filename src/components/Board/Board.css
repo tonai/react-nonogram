@@ -1,19 +1,18 @@
 .Board {
   border-spacing: 0;
+  border-collapse: collapse;
 }
 
 .Board__tile {
+  background-color: ghostwhite;
   height: 20px;
   padding: 0;
   width: 20px;
+  border: 1px solid black;
 }
 
-.Board__button {
-  display: block;
-  height: 20px;
-  width: 20px;
-  margin: 0;
-  padding: 0;
+.Board__tile--active {
+  background-color: gainsboro;
 }
 
 .Board__cell {
