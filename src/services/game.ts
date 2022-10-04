@@ -183,11 +183,11 @@ export function calculateBoardState(
   }
 
   if (state === TileState.MARKED) {
-    if (tileStates.every((state) => state === TileState.MARKED)) {
-      // Unmark all tiles
+    if (tileStates.every((state) => state !== TileState.HIDDEN)) {
+      // Unmark all hidden tiles
       return boardState.map((col, i) =>
         col.map((state, j) => {
-          if (tilesMap.has(`${i}-${j}`)) {
+          if (tilesMap.has(`${i}-${j}`) && state === TileState.MARKED) {
             return TileState.HIDDEN
           }
           return state
@@ -204,11 +204,14 @@ export function calculateBoardState(
       })
     )
   } else if (state === TileState.REVEALED) {
-    if (tiles.every((tile) => tile.color)) {
-      // Reveal all tiles
+    const hiddenTiles = tiles.filter(
+      ({ x, y }) => boardState[x][y] === TileState.HIDDEN
+    )
+    if (hiddenTiles.every((tile) => tile.color)) {
+      // Reveal all hidden tiles
       return boardState.map((col, i) =>
         col.map((state, j) => {
-          if (tilesMap.has(`${i}-${j}`)) {
+          if (tilesMap.has(`${i}-${j}`) && state === TileState.HIDDEN) {
             return TileState.REVEALED
           }
           return state
@@ -219,7 +222,11 @@ export function calculateBoardState(
     let revealed = false
     return boardState.map((col, i) =>
       col.map((state, j) => {
-        if (tilesMap.has(`${i}-${j}`) && !revealed) {
+        if (
+          tilesMap.has(`${i}-${j}`) &&
+          state === TileState.HIDDEN &&
+          !revealed
+        ) {
           const tile = tilesMap.get(`${i}-${j}`) as ITile
           if (!tile.color) {
             revealed = true

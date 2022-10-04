@@ -3,7 +3,6 @@ import {
   MouseEvent,
   PointerEvent as ReactPointerEvent,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -20,9 +19,6 @@ import {
 import { getSelectedTile } from '../../services'
 
 import './Board.css'
-
-// const height = 20
-// const width = 20
 
 interface IProps {
   gameData: IGame
@@ -94,10 +90,6 @@ function Board(props: IProps): JSX.Element {
       }
     }
   }, [board, flatBoard, onSelect, startTile])
-
-  // function handleClick(x: number, y: number) {
-  //   return (): void => onSelect?.([{ x, y }], TileState.REVEALED)
-  // }
 
   function handleContextMenu(event: MouseEvent): void {
     event.preventDefault()
