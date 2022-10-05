@@ -1,3 +1,4 @@
+import { PointerEvent as ReactPointerEvent } from 'react'
 import {
   IBoard,
   IColorMatch,
@@ -353,4 +354,10 @@ export function getSelectedTile(
   }
 
   return selectedTiles
+}
+
+export function getStateFromEvent(
+  event: MouseEvent | PointerEvent | ReactPointerEvent
+): TileState {
+  return event.button === 2 ? TileState.MARKED : TileState.REVEALED
 }

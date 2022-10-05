@@ -33,6 +33,12 @@ export interface IPosition {
   y: number
 }
 
+export interface IPointerStart extends IPosition {
+  x: number
+  y: number
+  state: TileState
+}
+
 export interface IFirstTileData {
   height: number
   left: number

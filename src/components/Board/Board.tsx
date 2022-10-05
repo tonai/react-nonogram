@@ -1,6 +1,5 @@
 /* eslint-disable react/no-array-index-key */
 import {
-  MouseEvent,
   PointerEvent as ReactPointerEvent,
   useEffect,
   useRef,
@@ -12,11 +11,11 @@ import {
   IFirstTileData,
   IGame,
   IGameState,
-  IPosition,
+  IPointerStart,
   ITile,
   TileState,
 } from '../../types'
-import { getSelectedTile } from '../../services'
+import { getSelectedTile, getStateFromEvent } from '../../services'
 
 import './Board.css'
 
@@ -33,7 +32,7 @@ function Board(props: IProps): JSX.Element {
 
   const tableRef = useRef<HTMLTableSectionElement>(null)
   const firstTileDataRef = useRef<IFirstTileData>()
-  const pointerStartRef = useRef<IPosition>()
+  const pointerStartRef = useRef<IPointerStart>()
   const [startTile, setStartTile] = useState<ITile>()
   const [selectedTiles, setSelectedTiles] = useState<number[]>([])
 
@@ -46,12 +45,39 @@ function Board(props: IProps): JSX.Element {
   }, [])
 
   useEffect(() => {
-    function handlePointerMove(event: PointerEvent): void {
+    function handlePointerDown(event: MouseEvent): void {
+      event.preventDefault()
+      if (
+        pointerStartRef.current?.state &&
+        pointerStartRef.current?.state !== getStateFromEvent(event)
+      ) {
+        setSelectedTiles([])
+        setStartTile(undefined)
+        pointerStartRef.current = undefined
+      }
+    }
+
+    function handleContextMenu(event: Event): void {
+      event.preventDefault()
+    }
+
+    window.addEventListener('mousedown', handlePointerDown)
+    window.addEventListener('contextmenu', (event) => event.preventDefault())
+    return () => {
+      window.removeEventListener('mousedown', handlePointerDown)
+      window.removeEventListener('contextmenu', handleContextMenu)
+    }
+  }, [])
+
+  useEffect(() => {
+    function handlePointerMove(event: MouseEvent): void {
+      const pointerStart = pointerStartRef.current as IPointerStart
+      const firstTileData = firstTileDataRef.current as IFirstTileData
       const position = { x: event.clientX, y: event.clientY }
       const selectedTileIds = getSelectedTile(
-        pointerStartRef.current as IPosition,
+        pointerStart,
         position,
-        firstTileDataRef.current as IFirstTileData,
+        firstTileData,
         board
       )
       setSelectedTiles((prevState) => {
@@ -62,48 +88,46 @@ function Board(props: IProps): JSX.Element {
       })
     }
 
-    function handlePointerUp(event: PointerEvent): void {
+    function handlePointerUp(event: MouseEvent): void {
+      const pointerStart = pointerStartRef.current as IPointerStart
+      const firstTileData = firstTileDataRef.current as IFirstTileData
       const position = { x: event.clientX, y: event.clientY }
       const selectedTileIds = getSelectedTile(
-        pointerStartRef.current as IPosition,
+        pointerStart,
         position,
-        firstTileDataRef.current as IFirstTileData,
+        firstTileData,
         board
       )
       const selectedTiles = flatBoard.filter((tile) =>
         selectedTileIds.includes(tile.id)
       )
-      onSelect?.(
-        selectedTiles,
-        event.button === 2 ? TileState.MARKED : TileState.REVEALED
-      )
+      onSelect?.(selectedTiles, pointerStart.state)
       setSelectedTiles([])
       setStartTile(undefined)
+      pointerStartRef.current = undefined
     }
 
     if (startTile && typeof window !== 'undefined') {
-      window.addEventListener('pointermove', handlePointerMove)
-      window.addEventListener('pointerup', handlePointerUp)
+      window.addEventListener('mousemove', handlePointerMove)
+      window.addEventListener('mouseup', handlePointerUp)
       return () => {
-        window.removeEventListener('pointermove', handlePointerMove)
-        window.removeEventListener('pointerup', handlePointerUp)
+        window.removeEventListener('mousemove', handlePointerMove)
+        window.removeEventListener('mouseup', handlePointerUp)
       }
     }
   }, [board, flatBoard, onSelect, startTile])
 
-  function handleContextMenu(event: MouseEvent): void {
-    event.preventDefault()
-  }
-
   function handlePointerDown(id: number) {
     return (event: ReactPointerEvent): void => {
-      event.preventDefault()
       const tile = flatBoard.find((tile) => tile.id === id)
       if (tile) {
         setStartTile(tile)
         setSelectedTiles([tile.id])
-        const position = { x: event.clientX, y: event.clientY }
-        pointerStartRef.current = position
+        pointerStartRef.current = {
+          state: getStateFromEvent(event),
+          x: event.clientX,
+          y: event.clientY,
+        }
       }
     }
   }
@@ -129,7 +153,7 @@ function Board(props: IProps): JSX.Element {
           ))}
         </tr>
       </thead>
-      <tbody onContextMenu={handleContextMenu} ref={tableRef}>
+      <tbody ref={tableRef}>
         {rows.map((row, y) => (
           <tr key={y}>
             <th className="Board__rows">
