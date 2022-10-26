@@ -1,4 +1,8 @@
-import { PointerEvent as ReactPointerEvent } from 'react'
+import {
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+  TouchEvent as ReactTouchEvent,
+} from 'react'
 import {
   IBoard,
   IColorMatch,
@@ -357,7 +361,24 @@ export function getSelectedTile(
 }
 
 export function getStateFromEvent(
-  event: MouseEvent | PointerEvent | ReactPointerEvent
+  event: MouseEvent | PointerEvent | TouchEvent | ReactPointerEvent
 ): TileState {
+  if (event instanceof TouchEvent) {
+    return TileState.REVEALED
+  }
   return event.button === 2 ? TileState.MARKED : TileState.REVEALED
+}
+
+export function getPositionFromEvent(
+  event: MouseEvent | PointerEvent | TouchEvent
+): IPosition {
+  if (event instanceof TouchEvent && event.touches[0]) {
+    return { x: event.touches[0].clientX, y: event.touches[0].clientY }
+  } else if (event instanceof TouchEvent) {
+    return {
+      x: event.changedTouches[0].clientX,
+      y: event.changedTouches[0].clientY,
+    }
+  }
+  return { x: event.clientX, y: event.clientY }
 }

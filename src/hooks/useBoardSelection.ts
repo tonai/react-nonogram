@@ -1,11 +1,16 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 
 import { INDICATOR_LEFT_OFFSET, INDICATOR_TOP_OFFSET } from '../constants'
-import { getSelectedTile, getStateFromEvent } from '../services'
+import {
+  getPositionFromEvent,
+  getSelectedTile,
+  getStateFromEvent,
+} from '../services'
 import {
   IBoard,
   IFirstTileData,
   IPointerStart,
+  IPosition,
   ITile,
   TileState,
 } from '../types'
@@ -13,7 +18,13 @@ import {
 export interface IBoardSelection<R extends HTMLElement = HTMLElement> {
   indicatorRef: RefObject<R>
   selectedTiles: number[]
-  start: (id: number, state: TileState, x: number, y: number) => void
+  start: (
+    id: number,
+    state: TileState,
+    x: number,
+    y: number,
+    pointerType: string
+  ) => void
   tableRef: RefObject<HTMLTableSectionElement>
 }
 
@@ -41,24 +52,29 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
     }
   }, [])
 
-  const updateIndicator = useCallback(
-    (x: number, y: number, length: number) => {
-      if (indicatorRef.current) {
-        indicatorRef.current.style.top = `${y - INDICATOR_TOP_OFFSET}px`
-        indicatorRef.current.style.left = `${x - INDICATOR_LEFT_OFFSET}px`
-        indicatorRef.current.innerText = String(length)
-      }
-    },
-    []
-  )
+  const updateIndicator = useCallback((position: IPosition, length: number) => {
+    if (indicatorRef.current) {
+      indicatorRef.current.style.top = `${position.y - INDICATOR_TOP_OFFSET}px`
+      indicatorRef.current.style.left = `${
+        position.x - INDICATOR_LEFT_OFFSET
+      }px`
+      indicatorRef.current.innerText = String(length)
+    }
+  }, [])
 
   const startSelection = useCallback(
-    (tile: ITile, state: TileState, x: number, y: number) => {
+    (
+      tile: ITile,
+      state: TileState,
+      x: number,
+      y: number,
+      pointerType: string
+    ) => {
       setStartTile(tile)
       setSelectedTiles([tile.id])
-      pointerStartRef.current = { state, x, y }
+      pointerStartRef.current = { pointerType, state, x, y }
       showIndicator()
-      updateIndicator(x, y, 1)
+      updateIndicator({ x, y }, 1)
     },
     [showIndicator, updateIndicator]
   )
@@ -83,14 +99,17 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
     }
   }, [hideIndicator])
 
-  // Set up cancellation mouse events
+  // Set up cancellation events
   useEffect(() => {
-    function handlePointerDown(event: MouseEvent): void {
-      event.preventDefault()
+    function handlePointerDown(event: MouseEvent | TouchEvent): void {
       if (
+        event instanceof MouseEvent &&
         pointerStartRef.current?.state &&
         pointerStartRef.current?.state !== getStateFromEvent(event)
       ) {
+        event.preventDefault()
+        stopSelection()
+      } else if (event instanceof TouchEvent && event.touches.length === 2) {
         stopSelection()
       }
     }
@@ -99,20 +118,26 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
       event.preventDefault()
     }
 
-    window.addEventListener('mousedown', handlePointerDown)
-    window.addEventListener('contextmenu', (event) => event.preventDefault())
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown)
-      window.removeEventListener('contextmenu', handleContextMenu)
+    if (startTile && pointerStartRef.current) {
+      if (pointerStartRef.current.pointerType === 'touch') {
+        window.addEventListener('touchstart', handlePointerDown)
+        return () => window.removeEventListener('touchstart', handlePointerDown)
+      }
+      window.addEventListener('mousedown', handlePointerDown)
+      window.addEventListener('contextmenu', (event) => event.preventDefault())
+      return () => {
+        window.removeEventListener('mousedown', handlePointerDown)
+        window.removeEventListener('contextmenu', handleContextMenu)
+      }
     }
-  }, [stopSelection])
+  }, [startTile, stopSelection])
 
-  // Set up selection mouse events
+  // Set up selection events
   useEffect(() => {
-    function handlePointerMove(event: MouseEvent): void {
+    function handlePointerMove(event: MouseEvent | TouchEvent): void {
       const pointerStart = pointerStartRef.current as IPointerStart
       const firstTileData = firstTileDataRef.current as IFirstTileData
-      const position = { x: event.clientX, y: event.clientY }
+      const position = getPositionFromEvent(event)
       const selectedTileIds = getSelectedTile(
         pointerStart,
         position,
@@ -125,13 +150,13 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
         }
         return prevState
       })
-      updateIndicator(event.clientX, event.clientY, selectedTileIds.length)
+      updateIndicator(position, selectedTileIds.length)
     }
 
-    function handlePointerUp(event: MouseEvent): void {
+    function handlePointerUp(event: MouseEvent | TouchEvent): void {
       const pointerStart = pointerStartRef.current as IPointerStart
       const firstTileData = firstTileDataRef.current as IFirstTileData
-      const position = { x: event.clientX, y: event.clientY }
+      const position = getPositionFromEvent(event)
       const selectedTileIds = getSelectedTile(
         pointerStart,
         position,
@@ -145,7 +170,15 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
       stopSelection()
     }
 
-    if (startTile && typeof window !== 'undefined') {
+    if (startTile && typeof window !== 'undefined' && pointerStartRef.current) {
+      if (pointerStartRef.current.pointerType === 'touch') {
+        window.addEventListener('touchmove', handlePointerMove)
+        window.addEventListener('touchend', handlePointerUp)
+        return () => {
+          window.removeEventListener('touchmove', handlePointerMove)
+          window.removeEventListener('touchend', handlePointerUp)
+        }
+      }
       window.addEventListener('mousemove', handlePointerMove)
       window.addEventListener('mouseup', handlePointerUp)
       return () => {
@@ -153,12 +186,18 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
         window.removeEventListener('mouseup', handlePointerUp)
       }
     }
-  }, [board, flatBoard, onSelect, startTile, stopSelection])
+  }, [board, flatBoard, onSelect, startTile, stopSelection, updateIndicator])
 
-  function start(id: number, state: TileState, x: number, y: number): void {
+  function start(
+    id: number,
+    state: TileState,
+    x: number,
+    y: number,
+    pointerType: string
+  ): void {
     const tile = flatBoard.find((tile) => tile.id === id)
     if (tile) {
-      startSelection(tile, state, x, y)
+      startSelection(tile, state, x, y, pointerType)
     }
   }
 

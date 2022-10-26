@@ -34,6 +34,7 @@ export interface IPosition {
 }
 
 export interface IPointerStart extends IPosition {
+  pointerType: string
   x: number
   y: number
   state: TileState

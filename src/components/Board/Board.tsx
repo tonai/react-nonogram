@@ -1,5 +1,5 @@
 /* eslint-disable react/no-array-index-key */
-import { PointerEvent as ReactPointerEvent } from 'react'
+import { PointerEvent } from 'react'
 import classnames from 'classnames'
 
 import { IGame, IGameState, ITile, TileState } from '../../types'
@@ -23,8 +23,15 @@ function Board(props: IProps): JSX.Element {
     useBoardSelection<HTMLDivElement>(board, flatBoard, onSelect)
 
   function handlePointerDown(id: number) {
-    return (event: ReactPointerEvent): void =>
-      start(id, getStateFromEvent(event), event.clientX, event.clientY)
+    return (event: PointerEvent): void => {
+      start(
+        id,
+        getStateFromEvent(event),
+        event.clientX,
+        event.clientY,
+        event.pointerType
+      )
+    }
   }
 
   return (
@@ -65,28 +72,33 @@ function Board(props: IProps): JSX.Element {
                 ))}
               </th>
               {board.map((col, x) => (
-                <td
-                  className={classnames('Board__tile', {
-                    'Board__tile--active': selectedTiles.includes(col[y].id),
-                  })}
-                  key={x}
-                  onPointerDown={handlePointerDown(col[y].id)}
-                >
-                  {boardState[x][y] === TileState.REVEALED &&
-                    Boolean(col[y].color) && (
-                      <div
-                        className="Board__cell"
-                        style={{
-                          backgroundColor: `rgba(${String(col[y].color)})`,
-                        }}
-                      />
+                <td className="Board__tile" key={x}>
+                  <button
+                    className={classnames('Board__button', {
+                      'Board__button--active': selectedTiles.includes(
+                        col[y].id
+                      ),
+                    })}
+                    onPointerDown={handlePointerDown(col[y].id)}
+                    type="button"
+                  >
+                    {boardState[x][y] === TileState.REVEALED &&
+                      Boolean(col[y].color) && (
+                        <div
+                          className="Board__cell"
+                          style={{
+                            backgroundColor: `rgba(${String(col[y].color)})`,
+                          }}
+                        />
+                      )}
+                    {boardState[x][y] === TileState.REVEALED &&
+                      !col[y].color && (
+                        <div className="Board__cell Board__cell--error">X</div>
+                      )}
+                    {boardState[x][y] === TileState.MARKED && (
+                      <div className="Board__cell">X</div>
                     )}
-                  {boardState[x][y] === TileState.REVEALED && !col[y].color && (
-                    <div className="Board__cell Board__cell--error">X</div>
-                  )}
-                  {boardState[x][y] === TileState.MARKED && (
-                    <div className="Board__cell">X</div>
-                  )}
+                  </button>
                 </td>
               ))}
             </tr>
