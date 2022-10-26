@@ -40,3 +40,9 @@
 .Board__clue--complete {
   font-weight: bold;
 }
+
+.Indicator {
+  background-color: white;
+  border: 1px solid black;
+  padding: 2px 5px;
+}
