@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import GamePage from '../GamePage/GamePage'
+import Layout from '../Layout/Layout'
 import StartPage from '../StartPage/StartPage'
 
 function App(): JSX.Element {
@@ -13,7 +14,7 @@ function App(): JSX.Element {
   }
 
   return (
-    <>
+    <Layout>
       {!start && (
         <StartPage
           image={image}
@@ -26,7 +27,7 @@ function App(): JSX.Element {
       {Boolean(start) && Boolean(imageData) && (
         <GamePage imageData={imageData as ImageData} />
       )}
-    </>
+    </Layout>
   )
 }
 

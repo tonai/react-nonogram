@@ -1,6 +1,8 @@
 import Canvas from '../Canvas/Canvas'
 import FileUpload from '../FileUpload/FileUpload'
 
+import './StartPage.css'
+
 interface IProps {
   image?: string
   imageData?: ImageData
@@ -13,7 +15,7 @@ function StartPage(props: IProps): JSX.Element {
   const { image, imageData, onImageChange, onImageLoad, onStart } = props
 
   return (
-    <div>
+    <div className="StartPage">
       <FileUpload onChange={onImageChange} />
       <Canvas imageUrl={image} onImageLoad={onImageLoad} />
       <button disabled={!imageData} onClick={onStart} type="button">
