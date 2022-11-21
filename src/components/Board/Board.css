@@ -12,7 +12,7 @@
 
 .Board__button {
   display: block;
-  background-color: ghostwhite;
+  background-color: #f3f3f3;
   width: 20px;
   height: 20px;
   padding: 0;
@@ -20,8 +20,13 @@
   border: 0;
 }
 
+.Board__button--col,
+.Board__button--row {
+  background-color: #ddd;
+}
+
 .Board__button--active {
-  background-color: gainsboro;
+  background-color: #aaa;
 }
 
 .Board__cell {

@@ -1,4 +1,11 @@
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import {
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import { INDICATOR_LEFT_OFFSET, INDICATOR_TOP_OFFSET } from '../constants'
 import {
@@ -16,6 +23,7 @@ import {
 } from '../types'
 
 export interface IBoardSelection<R extends HTMLElement = HTMLElement> {
+  endTile?: ITile
   indicatorRef: RefObject<R>
   selectedTiles: number[]
   start: (
@@ -25,6 +33,7 @@ export interface IBoardSelection<R extends HTMLElement = HTMLElement> {
     y: number,
     pointerType: string
   ) => void
+  startTile?: ITile
   tableRef: RefObject<HTMLTableSectionElement>
 }
 
@@ -99,6 +108,16 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
     }
   }, [hideIndicator])
 
+  // Cancel browser contextmenu
+  useEffect(() => {
+    function handleContextMenu(event: Event): void {
+      event.preventDefault()
+    }
+
+    window.addEventListener('contextmenu', handleContextMenu)
+    return () => window.removeEventListener('contextmenu', handleContextMenu)
+  }, [])
+
   // Set up cancellation events
   useEffect(() => {
     function handlePointerDown(event: MouseEvent | TouchEvent): void {
@@ -114,21 +133,13 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
       }
     }
 
-    function handleContextMenu(event: Event): void {
-      event.preventDefault()
-    }
-
     if (startTile && pointerStartRef.current) {
       if (pointerStartRef.current.pointerType === 'touch') {
         window.addEventListener('touchstart', handlePointerDown)
         return () => window.removeEventListener('touchstart', handlePointerDown)
       }
       window.addEventListener('mousedown', handlePointerDown)
-      window.addEventListener('contextmenu', (event) => event.preventDefault())
-      return () => {
-        window.removeEventListener('mousedown', handlePointerDown)
-        window.removeEventListener('contextmenu', handleContextMenu)
-      }
+      return () => window.removeEventListener('mousedown', handlePointerDown)
     }
   }, [startTile, stopSelection])
 
@@ -188,18 +199,31 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
     }
   }, [board, flatBoard, onSelect, startTile, stopSelection, updateIndicator])
 
-  function start(
-    id: number,
-    state: TileState,
-    x: number,
-    y: number,
-    pointerType: string
-  ): void {
-    const tile = flatBoard.find((tile) => tile.id === id)
-    if (tile) {
-      startSelection(tile, state, x, y, pointerType)
-    }
-  }
+  const start = useCallback(
+    (
+      id: number,
+      state: TileState,
+      x: number,
+      y: number,
+      pointerType: string
+    ): void => {
+      const tile = flatBoard.find((tile) => tile.id === id)
+      if (tile) {
+        startSelection(tile, state, x, y, pointerType)
+      }
+    },
+    [flatBoard, startSelection]
+  )
 
-  return { indicatorRef, selectedTiles, start, tableRef }
+  return useMemo(
+    () => ({
+      endTile: flatBoard.find((tile) => tile.id === selectedTiles.at(-1)),
+      indicatorRef,
+      selectedTiles,
+      start,
+      startTileId: startTile?.id,
+      tableRef,
+    }),
+    [flatBoard, selectedTiles, start, startTile]
+  )
 }

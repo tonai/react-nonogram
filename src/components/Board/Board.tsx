@@ -19,7 +19,7 @@ function Board(props: IProps): JSX.Element {
   const { board, cols, flatBoard, rows } = gameData
   const { boardState, colsState, rowsState } = gameState
 
-  const { indicatorRef, selectedTiles, start, tableRef } =
+  const { endTile, indicatorRef, selectedTiles, start, tableRef } =
     useBoardSelection<HTMLDivElement>(board, flatBoard, onSelect)
 
   function handlePointerDown(id: number) {
@@ -78,6 +78,8 @@ function Board(props: IProps): JSX.Element {
                       'Board__button--active': selectedTiles.includes(
                         col[y].id
                       ),
+                      'Board__button--col': endTile?.x === x,
+                      'Board__button--row': endTile?.y === y,
                     })}
                     onPointerDown={handlePointerDown(col[y].id)}
                     type="button"
