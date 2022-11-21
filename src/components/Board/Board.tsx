@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import { PointerEvent } from 'react'
-import classnames from 'classnames'
+import classNames from 'classnames'
 
 import { IGame, IGameState, ITile, TileState } from '../../types'
 import { getStateFromEvent } from '../../services'
@@ -44,7 +44,7 @@ function Board(props: IProps): JSX.Element {
               <th className="Board__cols" key={x}>
                 {col.map((value, y) => (
                   <div
-                    className={classnames({
+                    className={classNames({
                       'Board__clue--complete': colsState[x][y],
                     })}
                     key={y}
@@ -62,7 +62,7 @@ function Board(props: IProps): JSX.Element {
               <th className="Board__rows">
                 {row.map((value, x) => (
                   <span
-                    className={classnames({
+                    className={classNames({
                       'Board__clue--complete': rowsState[y][x],
                     })}
                     key={x}
@@ -74,7 +74,7 @@ function Board(props: IProps): JSX.Element {
               {board.map((col, x) => (
                 <td className="Board__tile" key={x}>
                   <button
-                    className={classnames('Board__button', {
+                    className={classNames('Board__button', {
                       'Board__button--active': selectedTiles.includes(
                         col[y].id
                       ),

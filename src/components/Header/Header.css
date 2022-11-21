@@ -1,0 +1,10 @@
+.Header {
+  height: 40px;
+}
+
+.Header__button {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}

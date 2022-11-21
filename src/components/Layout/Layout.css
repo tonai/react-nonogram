@@ -1,6 +1,12 @@
 .Layout {
   display: flex;
   height: 100vh;
+  flex-direction: column;
+}
+
+.Layout__content {
+  flex: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
 }

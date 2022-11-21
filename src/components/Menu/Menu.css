@@ -1,0 +1,36 @@
+.Menu {
+  background: #fff;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  border-right: 1px solid black;
+  transform: translateX(-100%);
+  transition: transform 200ms ease;
+}
+
+.Menu--open {
+  transform: translateX(0);
+}
+
+.Menu__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  font-size: 20px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.Menu__close:focus,
+.Menu__close:active {
+  background-color: #ddd;
+}
