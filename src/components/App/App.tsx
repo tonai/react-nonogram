@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ConfigProvider from '../ConfigProvider/ConfigProvider'
 
 import GamePage from '../GamePage/GamePage'
 import Layout from '../Layout/Layout'
@@ -14,20 +15,22 @@ function App(): JSX.Element {
   }
 
   return (
-    <Layout>
-      {!start && (
-        <StartPage
-          image={image}
-          imageData={imageData}
-          onImageChange={setImage}
-          onImageLoad={setImageData}
-          onStart={handleStart}
-        />
-      )}
-      {Boolean(start) && Boolean(imageData) && (
-        <GamePage imageData={imageData as ImageData} />
-      )}
-    </Layout>
+    <ConfigProvider>
+      <Layout>
+        {!start && (
+          <StartPage
+            image={image}
+            imageData={imageData}
+            onImageChange={setImage}
+            onImageLoad={setImageData}
+            onStart={handleStart}
+          />
+        )}
+        {Boolean(start) && Boolean(imageData) && (
+          <GamePage imageData={imageData as ImageData} />
+        )}
+      </Layout>
+    </ConfigProvider>
   )
 }
 

@@ -12,6 +12,7 @@ import {
 import { ITile, TileState } from '../../types'
 
 import Board from '../Board/Board'
+import GameFooter from '../GameFooter/GameFooter'
 
 interface IProps {
   imageData: ImageData
@@ -24,6 +25,7 @@ function GamePage(props: IProps): JSX.Element {
     [imageData]
   )
   const [gameState, setGameState] = useState(() => initState(gameData))
+  const [controlState, setControlState] = useState(TileState.REVEALED)
 
   function handleSelect(tiles: ITile[], state: TileState): void {
     setGameState((prevState) => {
@@ -40,7 +42,18 @@ function GamePage(props: IProps): JSX.Element {
   }
 
   return (
-    <Board gameData={gameData} gameState={gameState} onSelect={handleSelect} />
+    <>
+      <Board
+        controlState={controlState}
+        gameData={gameData}
+        gameState={gameState}
+        onSelect={handleSelect}
+      />
+      <GameFooter
+        controlState={controlState}
+        onControlChange={setControlState}
+      />
+    </>
   )
 }
 

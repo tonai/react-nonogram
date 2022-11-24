@@ -1,23 +1,26 @@
 /* eslint-disable react/no-array-index-key */
-import { PointerEvent } from 'react'
+import { PointerEvent, useContext } from 'react'
 import classNames from 'classnames'
 
-import { IGame, IGameState, ITile, TileState } from '../../types'
+import { configContext } from '../../contexts'
+import { useBoardSelection } from '../../hooks'
 import { getStateFromEvent } from '../../services'
+import { IGame, IGameState, ITile, TileState } from '../../types'
 
 import './Board.css'
-import { useBoardSelection } from '../../hooks'
 
 interface IProps {
+  controlState: TileState
   gameData: IGame
   gameState: IGameState
   onSelect?: (tiles: ITile[], state: TileState) => void
 }
 
 function Board(props: IProps): JSX.Element {
-  const { gameData, gameState, onSelect } = props
+  const { controlState, gameData, gameState, onSelect } = props
   const { board, cols, flatBoard, rows } = gameData
   const { boardState, colsState, rowsState } = gameState
+  const { config } = useContext(configContext)
 
   const { endTile, indicatorRef, selectedTiles, start, tableRef } =
     useBoardSelection<HTMLDivElement>(board, flatBoard, onSelect)
@@ -26,7 +29,7 @@ function Board(props: IProps): JSX.Element {
     return (event: PointerEvent): void => {
       start(
         id,
-        getStateFromEvent(event),
+        config.useMouseRightClick ? getStateFromEvent(event) : controlState,
         event.clientX,
         event.clientY,
         event.pointerType

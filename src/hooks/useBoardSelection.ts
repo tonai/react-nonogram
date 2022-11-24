@@ -1,6 +1,7 @@
 import {
   RefObject,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -8,6 +9,7 @@ import {
 } from 'react'
 
 import { INDICATOR_LEFT_OFFSET, INDICATOR_TOP_OFFSET } from '../constants'
+import { configContext } from '../contexts'
 import {
   getPositionFromEvent,
   getSelectedTile,
@@ -48,6 +50,8 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
   const pointerStartRef = useRef<IPointerStart>()
   const [startTile, setStartTile] = useState<ITile>()
   const [selectedTiles, setSelectedTiles] = useState<number[]>([])
+  const { config } = useContext(configContext)
+  const { useMouseRightClick } = config
 
   const showIndicator = useCallback(() => {
     if (indicatorRef.current) {
@@ -121,14 +125,20 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
   // Set up cancellation events
   useEffect(() => {
     function handlePointerDown(event: MouseEvent | TouchEvent): void {
-      if (
-        event instanceof MouseEvent &&
+      if (event instanceof TouchEvent && event.touches.length === 2) {
+        stopSelection()
+      } else if (
+        !useMouseRightClick &&
+        TileState.MARKED === getStateFromEvent(event)
+      ) {
+        event.preventDefault()
+        stopSelection()
+      } else if (
+        useMouseRightClick &&
         pointerStartRef.current?.state &&
         pointerStartRef.current?.state !== getStateFromEvent(event)
       ) {
         event.preventDefault()
-        stopSelection()
-      } else if (event instanceof TouchEvent && event.touches.length === 2) {
         stopSelection()
       }
     }
@@ -141,7 +151,7 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
       window.addEventListener('mousedown', handlePointerDown)
       return () => window.removeEventListener('mousedown', handlePointerDown)
     }
-  }, [startTile, stopSelection])
+  }, [startTile, stopSelection, useMouseRightClick])
 
   // Set up selection events
   useEffect(() => {

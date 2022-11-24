@@ -13,7 +13,7 @@ function Layout(props: IProps): JSX.Element {
   return (
     <div className="Layout">
       <Header />
-      <div className="Layout__content">{children}</div>
+      {children}
     </div>
   )
 }

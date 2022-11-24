@@ -1,0 +1,30 @@
+.GameFooter {
+  height: 80px;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  align-self: stretch;
+}
+
+.GameFooter__button {
+  border: 1px solid black;
+  margin: 0;
+  padding: 0;
+}
+
+.GameFooter__text {
+  display: block;
+  height: 40px;
+  width: 40px;
+  line-height: 40px;
+  text-align: center;
+}
+
+.GameFooter__radio:checked + .GameFooter__text {
+  background-color: #ddd;
+}
+
+.GameFooter__radio:active + .GameFooter__text,
+.GameFooter__radio:focus + .GameFooter__text {
+  background-color: #aaa;
+}

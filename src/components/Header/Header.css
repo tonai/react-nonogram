@@ -1,5 +1,6 @@
 .Header {
   height: 40px;
+  align-self: stretch;
 }
 
 .Header__button {

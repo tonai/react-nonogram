@@ -1,6 +1,8 @@
 .Board {
   border-spacing: 0;
   border-collapse: collapse;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .Board__tile {

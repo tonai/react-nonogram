@@ -8,6 +8,7 @@
   border-right: 1px solid black;
   transform: translateX(-100%);
   transition: transform 200ms ease;
+  padding: 50px 10px;
 }
 
 .Menu--open {
@@ -33,4 +34,8 @@
 .Menu__close:focus,
 .Menu__close:active {
   background-color: #ddd;
+}
+
+.Menu__control {
+  margin-bottom: 20px;
 }
