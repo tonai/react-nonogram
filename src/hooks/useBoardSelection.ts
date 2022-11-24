@@ -27,9 +27,9 @@ import {
 export interface IBoardSelection<R extends HTMLElement = HTMLElement> {
   endTile?: ITile
   indicatorRef: RefObject<R>
-  selectedTiles: number[]
+  selectedTiles: ITile[]
   start: (
-    id: number,
+    tile: ITile,
     state: TileState,
     x: number,
     y: number,
@@ -41,7 +41,6 @@ export interface IBoardSelection<R extends HTMLElement = HTMLElement> {
 
 export function useBoardSelection<R extends HTMLElement = HTMLElement>(
   board: IBoard,
-  flatBoard: ITile[],
   onSelect?: (tiles: ITile[], state: TileState) => void
 ): IBoardSelection<R> {
   const tableRef = useRef<HTMLTableSectionElement>(null)
@@ -49,7 +48,7 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
   const firstTileDataRef = useRef<IFirstTileData>()
   const pointerStartRef = useRef<IPointerStart>()
   const [startTile, setStartTile] = useState<ITile>()
-  const [selectedTiles, setSelectedTiles] = useState<number[]>([])
+  const [selectedTiles, setSelectedTiles] = useState<ITile[]>([])
   const { config } = useContext(configContext)
   const { useMouseRightClick } = config
 
@@ -84,7 +83,7 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
       pointerType: string
     ) => {
       setStartTile(tile)
-      setSelectedTiles([tile.id])
+      setSelectedTiles([tile])
       pointerStartRef.current = { pointerType, state, x, y }
       showIndicator()
       updateIndicator({ x, y }, 1)
@@ -178,14 +177,11 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
       const pointerStart = pointerStartRef.current as IPointerStart
       const firstTileData = firstTileDataRef.current as IFirstTileData
       const position = getPositionFromEvent(event)
-      const selectedTileIds = getSelectedTile(
+      const selectedTiles = getSelectedTile(
         pointerStart,
         position,
         firstTileData,
         board
-      )
-      const selectedTiles = flatBoard.filter((tile) =>
-        selectedTileIds.includes(tile.id)
       )
       onSelect?.(selectedTiles, pointerStart.state)
       stopSelection()
@@ -207,33 +203,32 @@ export function useBoardSelection<R extends HTMLElement = HTMLElement>(
         window.removeEventListener('mouseup', handlePointerUp)
       }
     }
-  }, [board, flatBoard, onSelect, startTile, stopSelection, updateIndicator])
+  }, [board, onSelect, startTile, stopSelection, updateIndicator])
 
   const start = useCallback(
     (
-      id: number,
+      tile: ITile,
       state: TileState,
       x: number,
       y: number,
       pointerType: string
     ): void => {
-      const tile = flatBoard.find((tile) => tile.id === id)
       if (tile) {
         startSelection(tile, state, x, y, pointerType)
       }
     },
-    [flatBoard, startSelection]
+    [startSelection]
   )
 
   return useMemo(
     () => ({
-      endTile: flatBoard.find((tile) => tile.id === selectedTiles.at(-1)),
+      endTile: selectedTiles.at(-1),
       indicatorRef,
       selectedTiles,
       start,
       startTileId: startTile?.id,
       tableRef,
     }),
-    [flatBoard, selectedTiles, start, startTile]
+    [selectedTiles, start, startTile]
   )
 }

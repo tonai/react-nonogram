@@ -1,8 +1,4 @@
-import {
-  MouseEvent as ReactMouseEvent,
-  PointerEvent as ReactPointerEvent,
-  TouchEvent as ReactTouchEvent,
-} from 'react'
+import { PointerEvent as ReactPointerEvent } from 'react'
 import {
   IBoard,
   IColorMatch,
@@ -54,8 +50,8 @@ export function initGameData(imageData: ImageData, color: IColorMatch): IGame {
     id++
   }
 
-  // Init flat board
-  const flatBoard = board.flat()
+  // Init tile map
+  const tileMap = new Map(board.flat().map((tile) => [tile.id, tile]))
 
   // Init cols
   const cols: number[][] = []
@@ -93,7 +89,7 @@ export function initGameData(imageData: ImageData, color: IColorMatch): IGame {
     }
   }
 
-  return { board, cols, flatBoard, rows }
+  return { board, cols, rows, tileMap }
 }
 
 export function initState(gameData: IGame): IGameState {
@@ -309,11 +305,11 @@ export function getSelectedTile(
   endPosition: IPosition,
   firstTileData: IFirstTileData,
   board: IBoard
-): number[] {
+): ITile[] {
   const { x: startX, y: startY } = startPosition
   const { x: endX, y: endY } = endPosition
   const { height, left, top, width } = firstTileData
-  const selectedTiles: number[] = []
+  const selectedTiles: ITile[] = []
 
   if (Math.abs(endX - startX) > Math.abs(endY - startY)) {
     // Select in row
@@ -332,9 +328,9 @@ export function getSelectedTile(
     const increment = (tile2X - tile1X) / Math.abs(tile2X - tile1X)
     let i = tile1X
     for (i; i !== tile2X; i += increment) {
-      selectedTiles.push(board[i][tile1Y].id)
+      selectedTiles.push(board[i][tile1Y])
     }
-    selectedTiles.push(board[i][tile1Y].id)
+    selectedTiles.push(board[i][tile1Y])
   } else {
     // Select in col
     const tile1X = Math.min(
@@ -352,9 +348,9 @@ export function getSelectedTile(
     const increment = (tile2Y - tile1Y) / Math.abs(tile2Y - tile1Y)
     let j = tile1Y
     for (j; j !== tile2Y; j += increment) {
-      selectedTiles.push(board[tile1X][j].id)
+      selectedTiles.push(board[tile1X][j])
     }
-    selectedTiles.push(board[tile1X][j].id)
+    selectedTiles.push(board[tile1X][j])
   }
 
   return selectedTiles

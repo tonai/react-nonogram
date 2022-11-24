@@ -12,8 +12,8 @@ export type IBoard = ITile[][]
 export interface IGame {
   board: IBoard
   cols: number[][]
-  flatBoard: ITile[]
   rows: number[][]
+  tileMap: Map<number, ITile>
 }
 
 export enum TileState {

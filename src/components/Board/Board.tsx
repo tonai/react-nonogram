@@ -18,17 +18,17 @@ interface IProps {
 
 function Board(props: IProps): JSX.Element {
   const { controlState, gameData, gameState, onSelect } = props
-  const { board, cols, flatBoard, rows } = gameData
+  const { board, cols, rows } = gameData
   const { boardState, colsState, rowsState } = gameState
   const { config } = useContext(configContext)
 
   const { endTile, indicatorRef, selectedTiles, start, tableRef } =
-    useBoardSelection<HTMLDivElement>(board, flatBoard, onSelect)
+    useBoardSelection<HTMLDivElement>(board, onSelect)
 
-  function handlePointerDown(id: number) {
+  function handlePointerDown(tile: ITile) {
     return (event: PointerEvent): void => {
       start(
-        id,
+        tile,
         config.useMouseRightClick ? getStateFromEvent(event) : controlState,
         event.clientX,
         event.clientY,
@@ -78,13 +78,11 @@ function Board(props: IProps): JSX.Element {
                 <td className="Board__tile" key={x}>
                   <button
                     className={classNames('Board__button', {
-                      'Board__button--active': selectedTiles.includes(
-                        col[y].id
-                      ),
+                      'Board__button--active': selectedTiles.includes(col[y]),
                       'Board__button--col': endTile?.x === x,
                       'Board__button--row': endTile?.y === y,
                     })}
-                    onPointerDown={handlePointerDown(col[y].id)}
+                    onPointerDown={handlePointerDown(col[y])}
                     type="button"
                   >
                     {boardState[x][y] === TileState.REVEALED &&
