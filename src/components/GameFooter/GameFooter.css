@@ -1,7 +1,7 @@
 .GameFooter {
   height: 80px;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   align-items: flex-start;
   align-self: stretch;
 }
