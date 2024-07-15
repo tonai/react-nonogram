@@ -2,6 +2,7 @@
   "name": "react-nonogram",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://tonai.github.io/react-nonogram",
   "dependencies": {
     "classnames": "^2.3.2",
     "react": "^18.2.0",
@@ -16,7 +17,9 @@
     "eslint": "eslint --fix --ignore-path .gitignore .",
     "prettier": "prettier --write --ignore-unknown --ignore-path .gitignore .",
     "typescript": "tsc --noEmit",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
@@ -29,6 +32,7 @@
     "@types/react": "^18.0.20",
     "@types/react-dom": "^18.0.6",
     "eslint-config-prettier": "^8.5.0",
+    "gh-pages": "^6.1.1",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
